@@ -14,7 +14,6 @@ ISimpleShader::ISimpleShader(ID3D11Device* device, ID3D11DeviceContext* context)
 	this->deviceContext = context;
 
 	// Set up fields
-	constantBuffers = 0;
 	constantBufferCount = 0;
 }
 
@@ -39,13 +38,7 @@ void ISimpleShader::CleanUp()
 		constantBuffers[i].ConstantBuffer->Release();
 		delete[] constantBuffers[i].LocalDataBuffer;
 	}
-
-	if (constantBuffers)
-	{
-		delete[] constantBuffers; 
-		constantBuffers = 0;
-	}
-
+	delete[] constantBuffers;
 	constantBufferCount = 0;
 
 	for (unsigned int i = 0; i < shaderResourceViews.size(); i++)
@@ -547,7 +540,6 @@ SimpleVertexShader::SimpleVertexShader(ID3D11Device* device, ID3D11DeviceContext
 	// Ensure we set to zero to successfully trigger
 	// the Input Layout creation during LoadShader()
 	this->inputLayout = 0;
-	this->shader = 0;
 }
 
 // --------------------------------------------------------
@@ -561,7 +553,6 @@ SimpleVertexShader::SimpleVertexShader(ID3D11Device * device, ID3D11DeviceContex
 {
 	// Save the custom input layout
 	this->inputLayout = inputLayout;
-	this->shader = 0;
 }
 
 // --------------------------------------------------------
@@ -763,10 +754,7 @@ bool SimpleVertexShader::SetSamplerState(std::string name, ID3D11SamplerState* s
 // Constructor just calls the base
 // --------------------------------------------------------
 SimplePixelShader::SimplePixelShader(ID3D11Device* device, ID3D11DeviceContext* context)
-	: ISimpleShader(device, context) 
-{ 
-	this->shader = 0;
-}
+	: ISimpleShader(device, context) { }
 
 // --------------------------------------------------------
 // Destructor - Clean up actual shader (base will be called automatically)
@@ -886,10 +874,7 @@ bool SimplePixelShader::SetSamplerState(std::string name, ID3D11SamplerState* sa
 // Constructor just calls the base
 // --------------------------------------------------------
 SimpleDomainShader::SimpleDomainShader(ID3D11Device* device, ID3D11DeviceContext* context)
-	: ISimpleShader(device, context) 
-{ 
-	this->shader = 0;
-}
+	: ISimpleShader(device, context) { }
 
 // --------------------------------------------------------
 // Destructor - Clean up actual shader (base will be called automatically)
@@ -1008,10 +993,7 @@ bool SimpleDomainShader::SetSamplerState(std::string name, ID3D11SamplerState* s
 // Constructor just calls the base
 // --------------------------------------------------------
 SimpleHullShader::SimpleHullShader(ID3D11Device* device, ID3D11DeviceContext* context)
-	: ISimpleShader(device, context) 
-{ 
-	this->shader = 0;
-}
+	: ISimpleShader(device, context) { }
 
 // --------------------------------------------------------
 // Destructor - Clean up actual shader (base will be called automatically)
@@ -1390,10 +1372,7 @@ unsigned int SimpleGeometryShader::CalcComponentCount(unsigned int mask)
 // Constructor just calls the base
 // --------------------------------------------------------
 SimpleComputeShader::SimpleComputeShader(ID3D11Device* device, ID3D11DeviceContext* context)
-	: ISimpleShader(device, context) 
-{ 
-	this->shader = 0;
-}
+	: ISimpleShader(device, context) { }
 
 // --------------------------------------------------------
 // Destructor - Clean up actual shader (base will be called automatically)

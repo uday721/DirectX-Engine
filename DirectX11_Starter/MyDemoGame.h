@@ -3,6 +3,7 @@
 #include <DirectXMath.h>
 #include "DirectXGameCore.h"
 #include "SimpleShader.h"
+#include "Mesh.h"
 
 // Include run-time memory checking in debug builds, so 
 // we can be notified of memory leaks
@@ -19,6 +20,7 @@ class MyDemoGame : public DirectXGameCore
 public:
 	MyDemoGame(HINSTANCE hInstance);
 	~MyDemoGame();
+	
 
 	// Overrides for base level methods
 	bool Init();
@@ -55,4 +57,7 @@ private:
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
+
+	Mesh* geometricalShapes;
+	
 };

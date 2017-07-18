@@ -24,6 +24,8 @@
 #include "MyDemoGame.h"
 #include "Vertex.h"
 
+
+
 // For the DirectX Math library
 using namespace DirectX;
 
@@ -82,12 +84,16 @@ MyDemoGame::MyDemoGame(HINSTANCE hInstance)
 MyDemoGame::~MyDemoGame()
 {
 	// Release any D3D stuff that's still hanging out
-	ReleaseMacro(vertexBuffer);
-	ReleaseMacro(indexBuffer);
+	/*ReleaseMacro(vertexBuffer);
+	ReleaseMacro(indexBuffer);*/
 
 	// Delete our simple shaders
 	delete vertexShader;
 	delete pixelShader;
+	
+	//Delete mesh objects
+	delete geometricalShapes;
+	 
 }
 
 #pragma endregion
@@ -152,60 +158,33 @@ void MyDemoGame::CreateGeometry()
 	//    over to a DirectX-controlled data structure (the vertex buffer)
 	Vertex vertices[] = 
 	{
-		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), red },
-		{ XMFLOAT3(+1.5f, -1.0f, +0.0f), blue },
-		{ XMFLOAT3(-1.5f, -1.0f, +0.0f), green },
+		{ XMFLOAT3(+1.0f, +1.5f, +0.0f), red },
+		{ XMFLOAT3(+1.5f, +0.5f, +0.0f), red },
+		{ XMFLOAT3(+0.5f, +0.5f, +0.0f), red },
+		{ XMFLOAT3(-1.0f, +1.0f, +0.0f), green },
+		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), green },
+		{ XMFLOAT3(+0.0f, +0.0f, +0.0f), green },
+		{ XMFLOAT3(-1.0f, +0.0f, +0.0f), green },
+		{ XMFLOAT3(-1.0f, -1.0f, +0.0f), blue},
+		{ XMFLOAT3(+0.0f, -0.5f, +0.0f), blue},
+		{ XMFLOAT3(+1.0f, -1.0f, +0.0f), blue},
+		{ XMFLOAT3(+1.0f, -2.0f, +0.0f), blue},
+		{ XMFLOAT3(-1.0f, -2.0f, +0.0f), blue},
 	};
+
+	
+	
 	
 	// Set up the indices, which tell us which vertices to use and in which order
 	// - This is somewhat redundant for just 3 vertices (it's a simple example)
 	// - Indices are technically not required if the vertices are in the buffer 
 	//    in the correct order and each one will be used exactly once
 	// - But just to see how it's done...
-	int indices[] = { 0, 1, 2 };
+	unsigned int indices[] = { 0, 1, 2, 3, 4, 5, 3, 5, 6, 7, 8, 9, 7, 9, 10, 7, 10, 11};
+	geometricalShapes = new Mesh(vertices, 12, indices, 18, device);
 
-
-	// Create the VERTEX BUFFER description -----------------------------------
-	// - The description is created on the stack because we only need
-	//    it to create the buffer.  The description is then useless.
-	D3D11_BUFFER_DESC vbd;
-    vbd.Usage				= D3D11_USAGE_IMMUTABLE;
-    vbd.ByteWidth			= sizeof(Vertex) * 3;       // 3 = number of vertices in the buffer
-    vbd.BindFlags			= D3D11_BIND_VERTEX_BUFFER; // Tells DirectX this is a vertex buffer
-    vbd.CPUAccessFlags		= 0;
-    vbd.MiscFlags			= 0;
-	vbd.StructureByteStride	= 0;
-
-	// Create the proper struct to hold the initial vertex data
-	// - This is how we put the initial data into the buffer
-    D3D11_SUBRESOURCE_DATA initialVertexData;
-    initialVertexData.pSysMem = vertices;
-
-	// Actually create the buffer with the initial data
-	// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
-    HR(device->CreateBuffer(&vbd, &initialVertexData, &vertexBuffer));
 
 	
-
-	// Create the INDEX BUFFER description ------------------------------------
-	// - The description is created on the stack because we only need
-	//    it to create the buffer.  The description is then useless.
-	D3D11_BUFFER_DESC ibd;
-	ibd.Usage               = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth           = sizeof(int) * 3;         // 3 = number of indices in the buffer
-	ibd.BindFlags           = D3D11_BIND_INDEX_BUFFER; // Tells DirectX this is an index buffer
-	ibd.CPUAccessFlags      = 0;
-	ibd.MiscFlags           = 0;
-	ibd.StructureByteStride = 0;
-
-	// Create the proper struct to hold the initial index data
-	// - This is how we put the initial data into the buffer
-	D3D11_SUBRESOURCE_DATA initialIndexData;
-	initialIndexData.pSysMem = indices;
-
-	// Actually create the buffer with the initial data
-	// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
-	HR(device->CreateBuffer(&ibd, &initialIndexData, &indexBuffer));
 }
 
 
@@ -289,6 +268,7 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 {
+	
 	// Background color (Cornflower Blue in this case) for clearing
 	const float color[4] = {0.4f, 0.6f, 0.75f, 0.0f};
 
@@ -324,8 +304,15 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	//    have different geometry.
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
+	int indexCount = geometricalShapes->indicesCount;
+	ID3D11Buffer* vertexBuffer = geometricalShapes->GetVertexBuffer();
+	ID3D11Buffer* indexBuffer = geometricalShapes->GetIndexBuffer();
 	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	
+	
+
 	
 	// Finally do the actual drawing
 	//  - Do this ONCE PER OBJECT you intend to draw
@@ -333,7 +320,7 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 	//     vertices in the currently set VERTEX BUFFER
 	deviceContext->DrawIndexed(
-		3,     // The number of indices to use (we could draw a subset if we wanted)
+		indexCount,     // The number of indices to use (we could draw a subset if we wanted)
 		0,     // Offset to the first index we want to use
 		0);    // Offset to add to each index when looking up vertices
 
@@ -361,6 +348,7 @@ void MyDemoGame::OnMouseDown(WPARAM btnState, int x, int y)
 	// Save the previous mouse position, so we have it for the future
 	prevMousePos.x = x;
 	prevMousePos.y = y;
+	
 
 	// Caputure the mouse so we keep getting mouse move
 	// events even if the mouse leaves the window.  we'll be
