@@ -9,8 +9,8 @@ class Mesh
 public:
 	
 	Mesh(Vertex* vertexobj, int noOfVertices, unsigned int* indices, int noOfIndices, ID3D11Device* devicePointer);
-	ID3D11Buffer * GetVertexBuffer();
-	ID3D11Buffer * GetIndexBuffer();
+	ID3D11Buffer * GetVertexBuffer() { return vertexBuffer; }
+	ID3D11Buffer * GetIndexBuffer() { return indexBuffer; }
 
 	int indicesCount;
 	

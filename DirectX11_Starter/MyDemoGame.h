@@ -4,6 +4,7 @@
 #include "DirectXGameCore.h"
 #include "SimpleShader.h"
 #include "Mesh.h"
+#include "GameEntity.h"
 
 // Include run-time memory checking in debug builds, so 
 // we can be notified of memory leaks
@@ -37,6 +38,12 @@ private:
 	// Initialization for our "game" demo - Feel free to
 	// expand, alter, rename or remove these once you
 	// start doing something more advanced!
+	unsigned int entityCurrentPosition;
+
+	std::vector<Mesh*> meshes;
+	std::vector<GameEntity*> entities;
+
+
 	void LoadShaders(); 
 	void CreateGeometry();
 	void CreateMatrices();
@@ -59,5 +66,8 @@ private:
 	POINT prevMousePos;
 
 	Mesh* geometricalShapes;
+
+	GameEntity* geoShape;
+	GameEntity* geoShape1;
 	
 };

@@ -44,17 +44,6 @@ Mesh::Mesh(Vertex* vertexObj, int noOfVertices, unsigned int* indices, int noOfI
 
 }
 
-ID3D11Buffer* Mesh::GetVertexBuffer()
-{
-	return vertexBuffer;
-}
-
-ID3D11Buffer* Mesh::GetIndexBuffer()
-{
-	return indexBuffer;
-}
-
-
 Mesh::~Mesh()
 {
 	vertexBuffer->Release();

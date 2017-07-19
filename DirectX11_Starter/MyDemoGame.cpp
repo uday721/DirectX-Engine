@@ -69,7 +69,7 @@ MyDemoGame::MyDemoGame(HINSTANCE hInstance)
 	// - "Wide" characters take up more space in memory (hence the name)
 	// - This allows for an extended character set (more fancy letters/symbols)
 	// - Lots of Windows functions want "wide characters", so we use the "L"
-	windowCaption = L"DirectX Game Engine";
+	windowCaption = L"My Super Fancy GGP Game";
 
 	// Custom window size - will be created by Init() later
 	windowWidth = 1280;
@@ -83,9 +83,6 @@ MyDemoGame::MyDemoGame(HINSTANCE hInstance)
 // --------------------------------------------------------
 MyDemoGame::~MyDemoGame()
 {
-	// Release any D3D stuff that's still hanging out
-	/*ReleaseMacro(vertexBuffer);
-	ReleaseMacro(indexBuffer);*/
 
 	// Delete our simple shaders
 	delete vertexShader;
@@ -183,7 +180,12 @@ void MyDemoGame::CreateGeometry()
 	unsigned int indices[] = { 0, 1, 2, 3, 4, 5, 3, 5, 6, 7, 8, 9, 7, 9, 10, 7, 10, 11};
 	geometricalShapes = new Mesh(vertices, 12, indices, 18, device);
 
+	geoShape = new GameEntity(geometricalShapes);
+	entities.push_back(geoShape);
+	geoShape1 = new GameEntity(geometricalShapes);
+	entities.push_back(geoShape1);
 
+	entityCurrentPosition = 0;
 	
 }
 
@@ -261,6 +263,11 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
+
+	x += deltaTime;
+
+	entities[entityCurrentPosition]->Move(tan(x) * 1, 0, 0);
+	entities[entityCurrentPosition]->UpdateWorldMatrix();
 }
 
 // --------------------------------------------------------
@@ -282,13 +289,16 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
+	GameEntity* gameEntity = entities[entityCurrentPosition];
+
+	
 
 	// Send data to shader variables
 	//  - Do this ONCE PER OBJECT you're drawing
 	//  - This is actually a complex process of copying data to a local buffer
 	//    and then copying that entire buffer to the GPU.  
 	//  - The "SimpleShader" class handles all of that for you.
-	vertexShader->SetMatrix4x4("world", worldMatrix);
+	vertexShader->SetMatrix4x4("world", *gameEntity->GetWorldMatrix());
 	vertexShader->SetMatrix4x4("view", viewMatrix);
 	vertexShader->SetMatrix4x4("projection", projectionMatrix);
 	
@@ -304,9 +314,10 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	//    have different geometry.
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
-	int indexCount = geometricalShapes->indicesCount;
-	ID3D11Buffer* vertexBuffer = geometricalShapes->GetVertexBuffer();
-	ID3D11Buffer* indexBuffer = geometricalShapes->GetIndexBuffer();
+	
+	vertexBuffer = gameEntity->GetMesh()->GetVertexBuffer();
+	indexBuffer = gameEntity->GetMesh()->GetIndexBuffer();
+	
 	deviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
 	deviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
@@ -320,7 +331,7 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 	//     vertices in the currently set VERTEX BUFFER
 	deviceContext->DrawIndexed(
-		indexCount,     // The number of indices to use (we could draw a subset if we wanted)
+		gameEntity->GetMesh()->indicesCount,     // The number of indices to use (we could draw a subset if we wanted)
 		0,     // Offset to the first index we want to use
 		0);    // Offset to add to each index when looking up vertices
 
