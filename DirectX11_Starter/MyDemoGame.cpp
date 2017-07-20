@@ -90,6 +90,9 @@ MyDemoGame::~MyDemoGame()
 	
 	//Delete mesh objects
 	delete geometricalShapes;
+	delete geoShape;
+	delete geoShape1;
+	delete camera;
 	 
 }
 
@@ -107,6 +110,9 @@ bool MyDemoGame::Init()
 	// initialize DirectX, etc.
 	if( !DirectXGameCore::Init() )
 		return false;
+
+	//initialise the camera
+	camera = new Camera();
 
 	// Helper methods to create something to draw, load shaders to draw it 
 	// with and set up matrices so we can see how to pass data to the GPU.
@@ -180,9 +186,9 @@ void MyDemoGame::CreateGeometry()
 	unsigned int indices[] = { 0, 1, 2, 3, 4, 5, 3, 5, 6, 7, 8, 9, 7, 9, 10, 7, 10, 11};
 	geometricalShapes = new Mesh(vertices, 12, indices, 18, device);
 
-	geoShape = new GameEntity(geometricalShapes);
+	geoShape = new GameEntity(geometricalShapes,gameMaterial);
 	entities.push_back(geoShape);
-	geoShape1 = new GameEntity(geometricalShapes);
+	geoShape1 = new GameEntity(geometricalShapes, gameMaterial);
 	entities.push_back(geoShape1);
 
 	entityCurrentPosition = 0;
@@ -227,6 +233,8 @@ void MyDemoGame::CreateMatrices()
 		0.1f,						// Near clip plane distance
 		100.0f);					// Far clip plane distance
 	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
+
+	camera->OnResize(aspectRatio);
 }
 
 #pragma endregion
@@ -242,13 +250,16 @@ void MyDemoGame::OnResize()
 	// Handle base-level DX resize stuff
 	DirectXGameCore::OnResize();
 
-	// Update our projection matrix since the window size changed
-	XMMATRIX P = XMMatrixPerspectiveFovLH(
-		0.25f * 3.1415926535f,	// Field of View Angle
-		aspectRatio,		  	// Aspect ratio
-		0.1f,				  	// Near clip plane distance
-		100.0f);			  	// Far clip plane distance
-	XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
+	//// Update our projection matrix since the window size changed
+	//XMMATRIX P = XMMatrixPerspectiveFovLH(
+	//	0.25f * 3.1415926535f,	// Field of View Angle
+	//	aspectRatio,		  	// Aspect ratio
+	//	0.1f,				  	// Near clip plane distance
+	//	100.0f);			  	// Far clip plane distance
+	//XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
+
+	//camera->OnResize(aspectRatio);
+	
 }
 #pragma endregion
 
@@ -263,11 +274,28 @@ void MyDemoGame::UpdateScene(float deltaTime, float totalTime)
 	// Quit if the escape key is pressed
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
+	if (GetAsyncKeyState(VK_SPACE)) 
+		camera->VerticalMovement(10.0f*deltaTime);
+	if (GetAsyncKeyState('X') & 0x8000) 
+		camera->VerticalMovement(-10.0f*deltaTime);
+	if (GetAsyncKeyState('W') & 0x8000) 
+		camera->Move(10.0f*deltaTime);
+	if (GetAsyncKeyState('S') & 0x8000) 
+		camera->Move(-10.0f*deltaTime);
+	if (GetAsyncKeyState('D') & 0x8000) 
+		camera->Strafe(-10.0f*deltaTime);
+	if (GetAsyncKeyState('A') & 0x8000) 
+		camera->Strafe(10.0f*deltaTime);
+	
 
 	x += deltaTime;
 
-	entities[entityCurrentPosition]->Move(tan(x) * 1, 0, 0);
+	entities[entityCurrentPosition]->Move(sin(x) * 1, 0, 0);
 	entities[entityCurrentPosition]->UpdateWorldMatrix();
+
+	//camera code
+	camera->Update();
+	
 }
 
 // --------------------------------------------------------
@@ -299,8 +327,10 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	//    and then copying that entire buffer to the GPU.  
 	//  - The "SimpleShader" class handles all of that for you.
 	vertexShader->SetMatrix4x4("world", *gameEntity->GetWorldMatrix());
-	vertexShader->SetMatrix4x4("view", viewMatrix);
-	vertexShader->SetMatrix4x4("projection", projectionMatrix);
+	vertexShader->SetMatrix4x4("view", camera->GetViewMatrix());
+	vertexShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+	
+	
 	
 	// Set the vertex and pixel shaders to use for the next Draw() command
 	//  - These don't technically need to be set every frame...YET
@@ -308,6 +338,8 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	//    you'll need to swap the current shaders before each draw
 	vertexShader->SetShader(true);
 	pixelShader->SetShader(true);
+
+	
 	
 	// Set buffers in the input assembler
 	//  - Do this ONCE PER OBJECT you're drawing, since each object might
@@ -388,8 +420,15 @@ void MyDemoGame::OnMouseUp(WPARAM btnState, int x, int y)
 // --------------------------------------------------------
 void MyDemoGame::OnMouseMove(WPARAM btnState, int x, int y)
 {
-	// Save the previous mouse position, so we have it for the future
-	prevMousePos.x = x;
-	prevMousePos.y = y;
+	if (btnState & 0x0001)
+	{
+		int diffX = x - prevMousePos.x;
+		int diffY = y - prevMousePos.y;
+		if (diffX > 1000 || diffX < -1000 || diffY > 1000 || diffY < -1000)
+			diffX = diffY = 0;
+		camera->MouseMovement(diffY * 0.001f, diffX* 0.001f);
+		prevMousePos.x = x;
+		prevMousePos.y = y;
+	}
 }
 #pragma endregion

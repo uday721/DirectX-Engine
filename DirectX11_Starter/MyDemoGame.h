@@ -5,6 +5,8 @@
 #include "SimpleShader.h"
 #include "Mesh.h"
 #include "GameEntity.h"
+#include "Camera.h"
+#include "Material.h"
 
 // Include run-time memory checking in debug builds, so 
 // we can be notified of memory leaks
@@ -66,8 +68,11 @@ private:
 	POINT prevMousePos;
 
 	Mesh* geometricalShapes;
+	Camera* camera;
 
 	GameEntity* geoShape;
 	GameEntity* geoShape1;
+
+	Material* gameMaterial;
 	
 };
