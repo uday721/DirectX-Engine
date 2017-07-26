@@ -4,7 +4,7 @@
 
 
 
-GameEntity::GameEntity(Mesh * mesh, Material* material)
+GameEntity::GameEntity(Mesh * mesh, Material* gameMaterial)
 {
 	this->mesh = mesh;
 
@@ -13,7 +13,7 @@ GameEntity::GameEntity(Mesh * mesh, Material* material)
 	rotation = XMFLOAT3(0, 0, 0);
 	scale = XMFLOAT3(1, 1, 1);
 
-	entityMaterial = material;
+	entityMaterial = gameMaterial;
 }
 
 GameEntity::~GameEntity()

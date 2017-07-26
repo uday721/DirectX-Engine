@@ -90,9 +90,10 @@ MyDemoGame::~MyDemoGame()
 	
 	//Delete mesh objects
 	delete geometricalShapes;
-	delete geoShape;
-	delete geoShape1;
+	delete cylinder;
+	delete cylinderEntity;
 	delete camera;
+	delete gameMaterial;
 	 
 }
 
@@ -125,6 +126,13 @@ bool MyDemoGame::Init()
 	// geometric primitives we'll be using and how to interpret them
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	//Directional Light 
+	directionalLight.AmbientColor = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
+	directionalLight.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
+	directionalLight.Direction = XMFLOAT3(1, -1, 1);
+
+	//setting the shader
+	pixelShader->SetData("dirLight", &directionalLight, sizeof(directionalLight));
 	// Successfully initialized
 	return true;
 }
@@ -150,46 +158,28 @@ void MyDemoGame::LoadShaders()
 // --------------------------------------------------------
 void MyDemoGame::CreateGeometry()
 {
-	// Create some temporary variables to represent colors
-	// - Not necessary, just makes things more readable
-	XMFLOAT4 red	= XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 green	= XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	XMFLOAT4 blue	= XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	
+	cylinder = new Mesh(device, "cylinder.obj");
+	meshes.push_back(cylinder);
 
-	// Set up the vertices of the triangle we would like to draw
-	// - We're going to copy this array, exactly as it exists in memory
-	//    over to a DirectX-controlled data structure (the vertex buffer)
-	Vertex vertices[] = 
-	{
-		{ XMFLOAT3(+1.0f, +1.5f, +0.0f), red },
-		{ XMFLOAT3(+1.5f, +0.5f, +0.0f), red },
-		{ XMFLOAT3(+0.5f, +0.5f, +0.0f), red },
-		{ XMFLOAT3(-1.0f, +1.0f, +0.0f), green },
-		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), green },
-		{ XMFLOAT3(+0.0f, +0.0f, +0.0f), green },
-		{ XMFLOAT3(-1.0f, +0.0f, +0.0f), green },
-		{ XMFLOAT3(-1.0f, -1.0f, +0.0f), blue},
-		{ XMFLOAT3(+0.0f, -0.5f, +0.0f), blue},
-		{ XMFLOAT3(+1.0f, -1.0f, +0.0f), blue},
-		{ XMFLOAT3(+1.0f, -2.0f, +0.0f), blue},
-		{ XMFLOAT3(-1.0f, -2.0f, +0.0f), blue},
-	};
+	cylinderEntity = new GameEntity(cylinder,gameMaterial);
+	entities.push_back(cylinderEntity);
 
 	
 	
-	
-	// Set up the indices, which tell us which vertices to use and in which order
-	// - This is somewhat redundant for just 3 vertices (it's a simple example)
-	// - Indices are technically not required if the vertices are in the buffer 
-	//    in the correct order and each one will be used exactly once
-	// - But just to see how it's done...
-	unsigned int indices[] = { 0, 1, 2, 3, 4, 5, 3, 5, 6, 7, 8, 9, 7, 9, 10, 7, 10, 11};
-	geometricalShapes = new Mesh(vertices, 12, indices, 18, device);
+	//
+	//// Set up the indices, which tell us which vertices to use and in which order
+	//// - This is somewhat redundant for just 3 vertices (it's a simple example)
+	//// - Indices are technically not required if the vertices are in the buffer 
+	////    in the correct order and each one will be used exactly once
+	//// - But just to see how it's done...
+	//unsigned int indices[] = { 0, 1, 2, 3, 4, 5, 3, 5, 6, 7, 8, 9, 7, 9, 10, 7, 10, 11};
+	//geometricalShapes = new Mesh(vertices, 12, indices, 18, device);
 
-	geoShape = new GameEntity(geometricalShapes,gameMaterial);
-	entities.push_back(geoShape);
-	geoShape1 = new GameEntity(geometricalShapes, gameMaterial);
-	entities.push_back(geoShape1);
+	//geoShape = new GameEntity(geometricalShapes,gameMaterial);
+	//entities.push_back(geoShape);
+	//geoShape1 = new GameEntity(geometricalShapes, gameMaterial);
+	//entities.push_back(geoShape1);
 
 	entityCurrentPosition = 0;
 	
@@ -363,7 +353,7 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
 	//     vertices in the currently set VERTEX BUFFER
 	deviceContext->DrawIndexed(
-		gameEntity->GetMesh()->indicesCount,     // The number of indices to use (we could draw a subset if we wanted)
+		gameEntity->GetMesh()->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
 		0,     // Offset to the first index we want to use
 		0);    // Offset to add to each index when looking up vertices
 

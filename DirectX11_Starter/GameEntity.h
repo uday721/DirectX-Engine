@@ -8,7 +8,7 @@ using namespace DirectX;
 class GameEntity
 {
 public:
-	GameEntity(Mesh* mesh,Material* material);
+	GameEntity(Mesh* mesh, Material* gameMaterial);
 	~GameEntity();
 
 	void UpdateWorldMatrix();

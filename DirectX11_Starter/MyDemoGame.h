@@ -7,6 +7,7 @@
 #include "GameEntity.h"
 #include "Camera.h"
 #include "Material.h"
+#include "Light.h"
 
 // Include run-time memory checking in debug builds, so 
 // we can be notified of memory leaks
@@ -68,11 +69,15 @@ private:
 	POINT prevMousePos;
 
 	Mesh* geometricalShapes;
+	Mesh* cylinder;
 	Camera* camera;
 
-	GameEntity* geoShape;
-	GameEntity* geoShape1;
+	GameEntity* cylinderEntity;
+	
 
 	Material* gameMaterial;
+
+	//lights
+	DirectionalLight directionalLight;
 	
 };
