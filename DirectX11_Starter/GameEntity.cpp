@@ -37,6 +37,7 @@ void GameEntity::PrepareMaterial(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projMatrix)
 	entityMaterial->GetVertexShader()->SetMatrix4x4("world", worldMatrix);
 	entityMaterial->GetVertexShader()->SetMatrix4x4("view", viewMatrix);
 	entityMaterial->GetVertexShader()->SetMatrix4x4("projection", projMatrix);
+	entityMaterial->UpdateShaderResource();
 	entityMaterial->GetVertexShader()->SetShader(true);
 	entityMaterial->GetPixelShader()->SetShader(true);
 }

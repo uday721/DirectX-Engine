@@ -26,6 +26,7 @@
 
 
 
+
 // For the DirectX Math library
 using namespace DirectX;
 
@@ -128,11 +129,20 @@ bool MyDemoGame::Init()
 
 	//Directional Light 
 	directionalLight.AmbientColor = XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
-	directionalLight.DiffuseColor = XMFLOAT4(1, 1, 1, 1);
+	directionalLight.DiffuseColor = XMFLOAT4(1, 0.8f, 1, 1);
 	directionalLight.Direction = XMFLOAT3(1, -1, 1);
 
 	//setting the shader
 	pixelShader->SetData("dirLight", &directionalLight, sizeof(directionalLight));
+
+	/*textureMaterial1 = new Material(&vertexShader, &pixelShader, &device, &deviceContext, &samplerState, &txtSource1, L"rusty.jpg");
+	textureMaterial2 = new Material(&vertexShader, &pixelShader, &device, &deviceContext, &samplerState, &txtSource2, L"rustySpec.png");*/
+
+	
+	CreateWICTextureFromFile(device, deviceContext, L"OnePiece.jpg", 0, &txtSource1);
+	
+	
+
 	// Successfully initialized
 	return true;
 }
@@ -150,6 +160,15 @@ void MyDemoGame::LoadShaders()
 
 	pixelShader = new SimplePixelShader(device, deviceContext);
 	pixelShader->LoadShaderFile(L"PixelShader.cso");
+
+
+	D3D11_SAMPLER_DESC samplerDesc = {};
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	device->CreateSamplerState(&samplerDesc, &samplerState);
 }
 
 
@@ -162,7 +181,7 @@ void MyDemoGame::CreateGeometry()
 	cylinder = new Mesh(device, "cylinder.obj");
 	meshes.push_back(cylinder);
 
-	cylinderEntity = new GameEntity(cylinder,gameMaterial);
+	cylinderEntity = new GameEntity(cylinder, gameMaterial);
 	entities.push_back(cylinderEntity);
 
 	
@@ -319,6 +338,10 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	vertexShader->SetMatrix4x4("world", *gameEntity->GetWorldMatrix());
 	vertexShader->SetMatrix4x4("view", camera->GetViewMatrix());
 	vertexShader->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+
+	pixelShader->SetShaderResourceView("diffuseTexture", txtSource1);
+	pixelShader->SetSamplerState("basicSampler", samplerState);
+	
 	
 	
 	
@@ -337,6 +360,8 @@ void MyDemoGame::DrawScene(float deltaTime, float totalTime)
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 	
+	
+
 	vertexBuffer = gameEntity->GetMesh()->GetVertexBuffer();
 	indexBuffer = gameEntity->GetMesh()->GetIndexBuffer();
 	

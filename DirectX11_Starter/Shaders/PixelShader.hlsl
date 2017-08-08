@@ -1,4 +1,7 @@
 
+Texture2D diffuseTexture	: register(t0);
+SamplerState basicSampler	: register(s0);
+
 struct DirectionalLight
 {
 	float4 AmbientColor;
@@ -36,8 +39,8 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;
 	float3 normal		: NORMAL;
-	float3 worldPos		: POSITION;
-	
+	float3 worldPos     : TEXCOORD0;
+	float2 uv           : TEXCOORD1;
 };
 
 // --------------------------------------------------------
@@ -55,8 +58,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//normalise the incoming data
 	input.normal = normalize(input.normal);
 
+	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	output = CalculateDirectionalLight(input.normal, dirLight);
-	return output;
+	return surfaceColor*output;
 
 	
 }

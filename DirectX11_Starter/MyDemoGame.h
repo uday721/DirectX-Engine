@@ -8,6 +8,9 @@
 #include "Camera.h"
 #include "Material.h"
 #include "Light.h"
+#include "WICTextureLoader.h"
+
+
 
 // Include run-time memory checking in debug builds, so 
 // we can be notified of memory leaks
@@ -76,8 +79,17 @@ private:
 	
 
 	Material* gameMaterial;
+	Material* textureMaterial1;
+	Material* textureMaterial2;
 
 	//lights
 	DirectionalLight directionalLight;
+
+	//sampler state
+	ID3D11SamplerState* samplerState;
+
+	//shader resource
+	
+	ID3D11ShaderResourceView* txtSource1;
 	
 };
